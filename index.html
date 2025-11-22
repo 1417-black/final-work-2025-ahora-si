@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 GameTracker - Mi Biblioteca de Videojuegos</title>
+    <style>
+        /* ============================================
+           ESTILOS CSS COMPLETOS
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        /* Modo Oscuro */
+        .app.modo-oscuro {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .app.modo-oscuro .app-header {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .app.modo-oscuro .tarjeta-juego,
+        .app.modo-oscuro .reseña-card,
+        .app.modo-oscuro .stat-card,
+        .app.modo-oscuro .formulario-container {
+            background: rgba(30, 30, 50, 0.8);
+            color: #e0e0e0;
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .btn-modo-oscuro {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: none;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modo-oscuro:hover {
+            transform: scale(1.1);
+            background: #667eea;
+        }
+
+        /* Navegación */
+        .app-nav {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-nav button {
+            padding: 0.8rem 1.5rem;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .app-nav button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .app-nav button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Main Content */
+        .app-main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .vista {
+            display: none;
+        }
+
+        .vista.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Biblioteca */
+        .biblioteca-header {
+            margin-bottom: 2rem;
+        }
+
+        .biblioteca-header h2 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .controles {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .input-busqueda,
+        .select-filtro,
+        .select-ordenar {
+            padding: 0.8rem;
+            border: 2px solid white;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-busqueda {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        /* Grid de Juegos */
+        .grid-juegos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Tarjeta de Juego */
+        .tarjeta-juego {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .tarjeta-juego:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .tarjeta-juego.completado {
+            border: 3px solid #4caf50;
+        }
+
+        .tarjeta-portada {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .tarjeta-portada img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .portada-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .badge-completado {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4caf50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .tarjeta-info {
+            padding: 1.5rem;
+        }
+
+        .tarjeta-info h3 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .plataforma,
+        .genero {
+            color: #666;
+            margin: 0.3rem 0;
+            font-size: 0.9rem;
+        }
+
+        .puntuacion {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .estrellas {
+            font-size: 1.2rem;
+        }
+
+        .numero {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .estadisticas {
+            color: #666;
+            margin: 0.5rem 0;
+        }
+
+        .tarjeta-acciones {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tarjeta-acciones button {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-editar {
+            background: #2196f3;
+        }
+
+        .btn-reseñar {
+            background: #ff9800;
+        }
+
+        .btn-eliminar {
+            background: #f44336;
+        }
+
+        .tarjeta-acciones button:hover {
+            transform: scale(1.1);
+            opacity: 0.9;
+        }
+
+        /* Formularios */
+        .formulario-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .formulario-container h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .preview-portada {
+            margin-top: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 300px;
+        }
+
+        .preview-portada img {
+            width: 100%;
+            height: auto;
+        }
+
+        .puntuacion-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .radio-estrella {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-estrella:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .radio-estrella input {
+            margin-right: 1rem;
+            width: auto;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        .form-acciones {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-submit,
+        .btn-cancelar {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-cancelar {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-cancelar:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+
+        /* Reseñas */
+        .reseñas-header h2 {
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .lista-reseñas {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .reseña-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .reseña-header-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .reseña-juego-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .reseña-portada-mini {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .reseña-juego-info h3 {
+            color: #333;
+        }
+
+        .fecha {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .btn-eliminar-reseña {
+            background: #f44336;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-eliminar-reseña:hover {
+            background: #da190b;
+            transform: scale(1.1);
+        }
+
+        .reseña-puntuacion {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            font-size: 1.2rem;
+        }
+
+        .reseña-contenido {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .juego-info-preview {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .juego-info-preview img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        /* Estadísticas */
+        .estadisticas-container h2 {
+            color: white;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+        }
+
+        .stat-info h3 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .generos-section,
+        .logros-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .generos-section h3,
+        .logros-section h3 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .genero-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .genero-nombre {
+            width: 150px;
+            font-weight: 600;
+        }
+
+        .genero-barra {
+            flex: 1;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .genero-progreso {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+        }
+
+        .genero-cantidad {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .logros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .logro {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Mensajes */
+        .mensaje-vacio {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 15px;
+            color: #666;
+        }
+
+        .mensaje-vacio p:first-child {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        .app-footer {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            text-align: center;
+            color: #666;
+            margin-top: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1.5rem;
+            }
+
+            .header-content h1 {
+                font-size: 2rem;
+            }
+
+            .btn-modo-oscuro {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .grid-juegos {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controles {
+                flex-direction: column;
+            }
+
+            .input-busqueda {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🎮 GameTracker</h1>
+                <p class="subtitle">Tu biblioteca personal de videojuegos</p>
+            </div>
+            <button class="btn-modo-oscuro" id="btnModoOscuro" title="Alternar modo oscuro">
+                🌙
+            </button>
+        </header>
+
+        <!-- Navegación -->
+        <nav class="app-nav">
+            <button class="active" data-vista="biblioteca">📚 Biblioteca</button>
+            <button data-vista="formulario">➕ Agregar Juego</button>
+            <button data-vista="reseñas">✍️ Reseñas</button>
+            <button data-vista="estadisticas">📊 Estadísticas</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Vista Biblioteca -->
+            <div id="biblioteca" class="vista active">
+                <div class="biblioteca-header">
+                    <h2>Mi Biblioteca (<span id="contadorJuegos">0</span> juegos)</h2>
+                    <div class="controles">
+                        <input 
+                            type="text" 
+                            id="inputBusqueda" 
+                            class="input-busqueda" 
+                            placeholder="🔍 Buscar juego..."
+                        />
+                        <select id="selectFiltro" class="select-filtro">
+                            <option value="todos">Todos</option>
+                            <option value="completados">Completados</option>
+                            <option value="pendientes">Pendientes</option>
+                        </select>
+                        <select id="selectOrdenar" class="select-ordenar">
+                            <option value="fecha">Fecha</option>
+                            <option value="titulo">Título</option>
+                            <option value="puntuacion">Puntuación</option>
+                            <option value="horas">Horas jugadas</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="gridJuegos" class="grid-juegos"></div>
+            </div>
+
+            <!-- Vista Formulario Juego -->
+            <div id="formulario" class="vista">
+                <div class="formulario-container">
+                    <h2 id="tituloFormulario">➕ Agregar Nuevo Juego</h2>
+                    <form id="formJuego">
+                        <div class="form-group">
+                            <label>Título *</label>
+                            <input type="text" id="inputTitulo" placeholder="Ej: The Legend of Zelda" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Plataforma *</label>
+                            <select id="inputPlataforma" required>
+                                <option value="">Selecciona una plataforma</option>
+                                <option value="PlayStation 5">PlayStation 5</option>
+                                <option value="PlayStation 4">PlayStation 4</option>
+                                <option value="Xbox Series X/S">Xbox Series X/S</option>
+                                <option value="Xbox One">Xbox One</option>
+                                <option value="Nintendo Switch">Nintendo Switch</option>
+                                <option value="PC">PC</option>
+                                <option value="Steam Deck">Steam Deck</option>
+                                <option value="Mobile">Mobile</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Género</label>
+                            <input type="text" id="inputGenero" placeholder="Ej: RPG, Acción, Aventura" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>URL de la Portada</label>
+                            <input type="url" id="inputPortada" placeholder="https://ejemplo.com/imagen.jpg" />
+                            <div id="previewPortada" class="preview-portada" style="display: none;">
+                                <img id="imgPreview" src="" alt="Preview" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Puntuación (0-5 estrellas)</label>
+                            <div class="puntuacion-selector" id="selectorPuntuacion">
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacion" value="0" checked />
+                                    <span>0 </span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacion" value="1" />
+                                    <span>1 ⭐</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacion" value="2" />
+                                    <span>2 ⭐⭐</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacion" value="3" />
+                                    <span>3 ⭐⭐⭐</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacion" value="4" />
+                                    <span>4 ⭐⭐⭐⭐</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacion" value="5" />
+                                    <span>5 ⭐⭐⭐⭐⭐</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Horas Jugadas</label>
+                            <input type="number" id="inputHoras" min="0" step="0.5" value="0" />
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="inputCompletado" />
+                                <span>Marcar como completado ✓</span>
+                            </label>
+                        </div>
+
+                        <div class="form-acciones">
+                            <button type="submit" class="btn-submit" id="btnSubmitJuego">
+                                ➕ Agregar Juego
+                            </button>
+                            <button type="button" class="btn-cancelar" id="btnCancelarJuego">
+                                ❌ Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Vista Reseñas -->
+            <div id="reseñas" class="vista">
+                <div class="reseñas-header">
+                    <h2>✍️ Mis Reseñas (<span id="contadorReseñas">0</span>)</h2>
+                </div>
+                <div id="listaReseñas" class="lista-reseñas"></div>
+            </div>
+
+            <!-- Vista Formulario Reseña -->
+            <div id="formularioReseña" class="vista">
+                <div class="formulario-container">
+                    <h2>✍️ Escribir Reseña</h2>
+                    <div id="juegoPreview" class="juego-info-preview"></div>
+                    <form id="formReseña">
+                        <div class="form-group">
+                            <label>Puntuación *</label>
+                            <div class="puntuacion-selector" id="selectorPuntuacionReseña">
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacionReseña" value="1" />
+                                    <span>⭐ 1/5</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacionReseña" value="2" />
+                                    <span>⭐⭐ 2/5</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacionReseña" value="3" />
+                                    <span>⭐⭐⭐ 3/5</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacionReseña" value="4" />
+                                    <span>⭐⭐⭐⭐ 4/5</span>
+                                </label>
+                                <label class="radio-estrella">
+                                    <input type="radio" name="puntuacionReseña" value="5" checked />
+                                    <span>⭐⭐⭐⭐⭐ 5/5</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tu Reseña *</label>
+                            <textarea 
+                                id="inputContenidoReseña" 
+                                rows="10" 
+                                placeholder="Escribe tu opinión sobre el juego... ¿Qué te gustó? ¿Qué no te gustó? ¿Lo recomiendas?"
+                                required
+                            ></textarea>
+                            <small><span id="contadorCaracteres">0</span> caracteres</small>
+                        </div>
+
+                        <div class="form-acciones">
+                            <button type="submit" class="btn-submit">
+                                💾 Publicar Reseña
+                            </button>
+                            <button type="button" class="btn-cancelar" id="btnCancelarReseña">
+                                ❌ Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Vista Estadísticas -->
+            <div id="estadisticas" class="vista">
+                <div class="estadisticas-container">
+                    <h2>📊 Dashboard de Estadísticas</h2>
+                    <div id="statsGrid" class="stats-grid"></div>
+                    <div id="generosSection" class="generos-section" style="display: none;"></div>
+                    <div id="logrosSection" class="logros-section"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>© 2025 GameTracker- Jose Julian Mera Gomez </p>
+        </footer>            
+    </div>
+
+    <script>
+        // ============================================
+        // JAVASCRIPT - LÓGICA DE LA APLICACIÓN
+        // ============================================
+
+        // Estado de la aplicación
+        let juegos = [];
+        let reseñas = [];
+        let juegoEnEdicion = null;
+        let juegoParaReseña = null;
+
+        // Cargar datos del localStorage al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+            renderizarBiblioteca();
+            renderizarReseñas();
+            renderizarEstadisticas();
+            configurarEventos();
+        });
+
+        // ============================================
+        // FUNCIONES DE ALMACENAMIENTO
+        // ============================================
+        
+        function cargarDatos() {
+            const datosGuardados = localStorage.getItem('gameTrackerJuegos');
+            const reseñasGuardadas = localStorage.getItem('gameTrackerReseñas');
+            
+            if (datosGuardados) {
+                juegos = JSON.parse(datosGuardados);
+            }
+            
+            if (reseñasGuardadas) {
+                reseñas = JSON.parse(reseñasGuardadas);
+            }
+        }
+
+        function guardarJuegos() {
+            localStorage.setItem('gameTrackerJuegos', JSON.stringify(juegos));
+        }
+
+        function guardarReseñas() {
+            localStorage.setItem('gameTrackerReseñas', JSON.stringify(reseñas));
+        }
+
+        // ============================================
+        // FUNCIONES DE NAVEGACIÓN
+        // ============================================
+        
+        function configurarEventos() {
+            // Navegación
+            document.querySelectorAll('.app-nav button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const vista = btn.dataset.vista;
+                    cambiarVista(vista);
+                    
+                    // Actualizar botón activo
+                    document.querySelectorAll('.app-nav button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+
+            // Modo oscuro
+            document.getElementById('btnModoOscuro').addEventListener('click', toggleModoOscuro);
+
+            // Búsqueda y filtros
+            document.getElementById('inputBusqueda').addEventListener('input', renderizarBiblioteca);
+            document.getElementById('selectFiltro').addEventListener('change', renderizarBiblioteca);
+            document.getElementById('selectOrdenar').addEventListener('change', renderizarBiblioteca);
+
+            // Formulario de juego
+            document.getElementById('formJuego').addEventListener('submit', manejarSubmitJuego);
+            document.getElementById('btnCancelarJuego').addEventListener('click', () => {
+                cambiarVista('biblioteca');
+                limpiarFormularioJuego();
+            });
+
+            // Preview de portada
+            document.getElementById('inputPortada').addEventListener('input', (e) => {
+                const url = e.target.value;
+                const preview = document.getElementById('previewPortada');
+                const img = document.getElementById('imgPreview');
+                
+                if (url) {
+                    img.src = url;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
+
+            // Formulario de reseña
+            document.getElementById('formReseña').addEventListener('submit', manejarSubmitReseña);
+            document.getElementById('btnCancelarReseña').addEventListener('click', () => {
+                cambiarVista('biblioteca');
+            });
+
+            // Contador de caracteres
+            document.getElementById('inputContenidoReseña').addEventListener('input', (e) => {
+                document.getElementById('contadorCaracteres').textContent = e.target.value.length;
+            });
+        }
+
+        function cambiarVista(nombreVista) {
+            document.querySelectorAll('.vista').forEach(v => v.classList.remove('active'));
+            document.getElementById(nombreVista).classList.add('active');
+            
+            // Actualizar estadísticas si vamos a esa vista
+            if (nombreVista === 'estadisticas') {
+                renderizarEstadisticas();
+            }
+        }
+
+        function toggleModoOscuro() {
+            const app = document.getElementById('app');
+            const btn = document.getElementById('btnModoOscuro');
+            
+            app.classList.toggle('modo-oscuro');
+            btn.textContent = app.classList.contains('modo-oscuro') ? '☀️' : '🌙';
+        }
+
+        // ============================================
+        // FUNCIONES DE RENDERIZADO - BIBLIOTECA
+        // ============================================
+        
+        function renderizarBiblioteca() {
+            const busqueda = document.getElementById('inputBusqueda').value.toLowerCase();
+            const filtro = document.getElementById('selectFiltro').value;
+            const ordenar = document.getElementById('selectOrdenar').value;
+            
+            // Filtrar juegos
+            let juegosFiltrados = juegos.filter(juego => {
+                // Filtro de búsqueda
+                if (busqueda && !juego.titulo.toLowerCase().includes(busqueda)) {
+                    return false;
+                }
+                
+                // Filtro de estado
+                if (filtro === 'completados' && !juego.completado) return false;
+                if (filtro === 'pendientes' && juego.completado) return false;
+                
+                return true;
+            });
+
+            // Ordenar juegos
+            juegosFiltrados.sort((a, b) => {
+                switch (ordenar) {
+                    case 'titulo':
+                        return a.titulo.localeCompare(b.titulo);
+                    case 'puntuacion':
+                        return b.puntuacion - a.puntuacion;
+                    case 'horas':
+                        return b.horasJugadas - a.horasJugadas;
+                    case 'fecha':
+                    default:
+                        return new Date(b.fechaAgregado) - new Date(a.fechaAgregado);
+                }
+            });
+
+            const grid = document.getElementById('gridJuegos');
+            const contador = document.getElementById('contadorJuegos');
+            
+            contador.textContent = juegos.length;
+
+            if (juegosFiltrados.length === 0) {
+                grid.innerHTML = `
+                    <div class="mensaje-vacio" style="grid-column: 1/-1;">
+                        <p>📭 No hay juegos en tu biblioteca</p>
+                        <p>¡Agrega tu primer juego para empezar!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = juegosFiltrados.map(juego => crearTarjetaJuego(juego)).join('');
+            
+            // Agregar event listeners a las tarjetas
+            juegosFiltrados.forEach((juego, index) => {
+                const tarjeta = grid.children[index];
+                
+                tarjeta.querySelector('.btn-editar').addEventListener('click', () => editarJuego(juego));
+                tarjeta.querySelector('.btn-reseñar').addEventListener('click', () => abrirFormularioReseña(juego));
+                tarjeta.querySelector('.btn-eliminar').addEventListener('click', () => eliminarJuego(juego.id));
+            });
+        }
+
+        function crearTarjetaJuego(juego) {
+            const estrellas = '⭐'.repeat(Math.floor(juego.puntuacion)) + '☆'.repeat(5 - Math.floor(juego.puntuacion));
+            
+            return `
+                <div class="tarjeta-juego ${juego.completado ? 'completado' : ''}">
+                    <div class="tarjeta-portada">
+                        ${juego.portada 
+                            ? `<img src="${juego.portada}" alt="${juego.titulo}" />`
+                            : '<div class="portada-placeholder">🎮</div>'
+                        }
+                        ${juego.completado ? '<div class="badge-completado">✓ Completado</div>' : ''}
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3>${juego.titulo}</h3>
+                        <p class="plataforma">🎯 ${juego.plataforma}</p>
+                        ${juego.genero ? `<p class="genero">🎪 ${juego.genero}</p>` : ''}
+                        <div class="puntuacion">
+                            <span class="estrellas">${estrellas}</span>
+                            <span class="numero">${juego.puntuacion}/5</span>
+                        </div>
+                        <div class="estadisticas">
+                            <span>⏱️ ${juego.horasJugadas}h jugadas</span>
+                        </div>
+                        <div class="tarjeta-acciones">
+                            <button class="btn-editar" title="Editar">✏️</button>
+                            <button class="btn-reseñar" title="Escribir reseña">✍️</button>
+                            <button class="btn-eliminar" title="Eliminar">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // FUNCIONES DE JUEGOS
+        // ============================================
+        
+        function manejarSubmitJuego(e) {
+            e.preventDefault();
+            
+            const titulo = document.getElementById('inputTitulo').value;
+            const plataforma = document.getElementById('inputPlataforma').value;
+            const genero = document.getElementById('inputGenero').value;
+            const portada = document.getElementById('inputPortada').value;
+            const puntuacion = parseInt(document.querySelector('input[name="puntuacion"]:checked').value);
+            const horasJugadas = parseFloat(document.getElementById('inputHoras').value) || 0;
+            const completado = document.getElementById('inputCompletado').checked;
+
+            if (!titulo || !plataforma) {
+                alert('Por favor completa los campos obligatorios');
+                return;
+            }
+
+            if (juegoEnEdicion) {
+                // Editar juego existente
+                const index = juegos.findIndex(j => j.id === juegoEnEdicion.id);
+                juegos[index] = {
+                    ...juegos[index],
+                    titulo,
+                    plataforma,
+                    genero,
+                    portada,
+                    puntuacion,
+                    horasJugadas,
+                    completado
+                };
+                juegoEnEdicion = null;
+                alert('✅ Juego actualizado exitosamente');
+            } else {
+                // Agregar nuevo juego
+                const nuevoJuego = {
+                    id: Date.now(),
+                    titulo,
+                    plataforma,
+                    genero,
+                    portada,
+                    puntuacion,
+                    horasJugadas,
+                    completado,
+                    fechaAgregado: new Date().toISOString()
+                };
+                juegos.push(nuevoJuego);
+                alert('✅ Juego agregado exitosamente');
+            }
+
+            guardarJuegos();
+            renderizarBiblioteca();
+            limpiarFormularioJuego();
+            cambiarVista('biblioteca');
+        }
+
+        function editarJuego(juego) {
+            juegoEnEdicion = juego;
+            
+            document.getElementById('inputTitulo').value = juego.titulo;
+            document.getElementById('inputPlataforma').value = juego.plataforma;
+            document.getElementById('inputGenero').value = juego.genero || '';
+            document.getElementById('inputPortada').value = juego.portada || '';
+            document.getElementById('inputHoras').value = juego.horasJugadas;
+            document.getElementById('inputCompletado').checked = juego.completado;
+            
+            // Seleccionar puntuación
+            document.querySelector(`input[name="puntuacion"][value="${juego.puntuacion}"]`).checked = true;
+            
+            // Mostrar preview si hay portada
+            if (juego.portada) {
+                document.getElementById('imgPreview').src = juego.portada;
+                document.getElementById('previewPortada').style.display = 'block';
+            }
+            
+            document.getElementById('tituloFormulario').textContent = '✏️ Editar Juego';
+            document.getElementById('btnSubmitJuego').textContent = '💾 Guardar Cambios';
+            
+            cambiarVista('formulario');
+        }
+
+        function eliminarJuego(id) {
+            if (confirm('¿Estás seguro de eliminar este juego?')) {
+                juegos = juegos.filter(j => j.id !== id);
+                reseñas = reseñas.filter(r => r.juegoId !== id);
+                
+                guardarJuegos();
+                guardarReseñas();
+                renderizarBiblioteca();
+                renderizarReseñas();
+                
+                alert('✅ Juego eliminado correctamente');
+            }
+        }
+
+        function limpiarFormularioJuego() {
+            document.getElementById('formJuego').reset();
+            document.getElementById('previewPortada').style.display = 'none';
+            document.getElementById('tituloFormulario').textContent = '➕ Agregar Nuevo Juego';
+            document.getElementById('btnSubmitJuego').textContent = '➕ Agregar Juego';
+            juegoEnEdicion = null;
+        }
+
+        // ============================================
+        // FUNCIONES DE RESEÑAS
+        // ============================================
+        
+        function renderizarReseñas() {
+            const lista = document.getElementById('listaReseñas');
+            const contador = document.getElementById('contadorReseñas');
+            
+            contador.textContent = reseñas.length;
+
+            if (reseñas.length === 0) {
+                lista.innerHTML = `
+                    <div class="mensaje-vacio">
+                        <p>📝 Aún no has escrito ninguna reseña</p>
+                        <p>¡Ve a tu biblioteca y escribe tu primera reseña!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            lista.innerHTML = reseñas.map(reseña => crearTarjetaReseña(reseña)).join('');
+            
+            // Agregar event listeners
+            reseñas.forEach((reseña, index) => {
+                const card = lista.children[index];
+                card.querySelector('.btn-eliminar-reseña').addEventListener('click', () => eliminarReseña(reseña.id));
+            });
+        }
+
+        function crearTarjetaReseña(reseña) {
+            const juego = juegos.find(j => j.id === reseña.juegoId);
+            const estrellas = '⭐'.repeat(Math.floor(reseña.puntuacion)) + '☆'.repeat(5 - Math.floor(reseña.puntuacion));
+            const fecha = new Date(reseña.fechaCreacion).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            return `
+                <div class="reseña-card">
+                    <div class="reseña-header-card">
+                        <div class="reseña-juego-info">
+                            ${juego && juego.portada 
+                                ? `<img src="${juego.portada}" alt="${reseña.tituloJuego}" class="reseña-portada-mini" />`
+                                : ''
+                            }
+                            <div>
+                                <h3>${reseña.tituloJuego}</h3>
+                                <p class="fecha">${fecha}</p>
+                            </div>
+                        </div>
+                        <button class="btn-eliminar-reseña" title="Eliminar reseña">🗑️</button>
+                    </div>
+                    <div class="reseña-puntuacion">
+                        ${estrellas}
+                        <span class="numero">${reseña.puntuacion}/5</span>
+                    </div>
+                    <div class="reseña-contenido">
+                        <p>${reseña.contenido}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function abrirFormularioReseña(juego) {
+            juegoParaReseña = juego;
+            
+            const preview = document.getElementById('juegoPreview');
+            preview.innerHTML = `
+                ${juego.portada ? `<img src="${juego.portada}" alt="${juego.titulo}" />` : ''}
+                <div>
+                    <h3>${juego.titulo}</h3>
+                    <p>${juego.plataforma}</p>
+                </div>
+            `;
+            
+            cambiarVista('formularioReseña');
+        }
+
+        function manejarSubmitReseña(e) {
+            e.preventDefault();
+            
+            const contenido = document.getElementById('inputContenidoReseña').value;
+            const puntuacion = parseInt(document.querySelector('input[name="puntuacionReseña"]:checked').value);
+
+            if (!contenido.trim()) {
+                alert('Por favor escribe tu reseña');
+                return;
+            }
+
+            const nuevaReseña = {
+                id: Date.now(),
+                juegoId: juegoParaReseña.id,
+                tituloJuego: juegoParaReseña.titulo,
+                contenido,
+                puntuacion,
+                fechaCreacion: new Date().toISOString()
+            };
+
+            reseñas.push(nuevaReseña);
+            guardarReseñas();
+            
+            document.getElementById('formReseña').reset();
+            document.getElementById('contadorCaracteres').textContent = '0';
+            
+            renderizarReseñas();
+            cambiarVista('reseñas');
+            
+            alert('✅ Reseña publicada exitosamente');
+        }
+
+        function eliminarReseña(id) {
+            if (confirm('¿Estás seguro de eliminar esta reseña?')) {
+                reseñas = reseñas.filter(r => r.id !== id);
+                guardarReseñas();
+                renderizarReseñas();
+                alert('✅ Reseña eliminada correctamente');
+            }
+        }
+
+        // ============================================
+        // FUNCIONES DE ESTADÍSTICAS
+        // ============================================
+        
+        function renderizarEstadisticas() {
+            const totalJuegos = juegos.length;
+            const juegosCompletados = juegos.filter(j => j.completado).length;
+            const totalReseñas = reseñas.length;
+            const horasTotales = juegos.reduce((sum, j) => sum + j.horasJugadas, 0);
+            
+            const juegosConPuntuacion = juegos.filter(j => j.puntuacion > 0);
+            const puntuacionPromedio = juegosConPuntuacion.length > 0
+                ? (juegosConPuntuacion.reduce((sum, j) => sum + j.puntuacion, 0) / juegosConPuntuacion.length).toFixed(1)
+                : 0;
+            
+            const tasaCompletitud = totalJuegos > 0 
+                ? ((juegosCompletados / totalJuegos) * 100).toFixed(1)
+                : 0;
+
+            // Renderizar tarjetas de estadísticas
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon">🎮</div>
+                    <div class="stat-info">
+                        <h3>${totalJuegos}</h3>
+                        <p>Juegos en Biblioteca</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-info">
+                        <h3>${juegosCompletados}</h3>
+                        <p>Juegos Completados</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-info">
+                        <h3>${horasTotales}</h3>
+                        <p>Horas Totales Jugadas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-info">
+                        <h3>${puntuacionPromedio}</h3>
+                        <p>Puntuación Promedio</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✍️</div>
+                    <div class="stat-info">
+                        <h3>${totalReseñas}</h3>
+                        <p>Reseñas Escritas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <h3>${tasaCompletitud}%</h3>
+                        <p>Tasa de Completitud</p>
+                    </div>
+                </div>
+            `;
+
+            // Renderizar juegos por género
+            renderizarGeneros();
+
+            // Renderizar logros
+            renderizarLogros(totalJuegos, juegosCompletados, horasTotales, totalReseñas, puntuacionPromedio);
+        }
+
+        function renderizarGeneros() {
+            const generosSection = document.getElementById('generosSection');
+            
+            // Contar juegos por género
+            const generos = {};
+            juegos.forEach(juego => {
+                if (juego.genero && juego.genero.trim()) {
+                    const genero = juego.genero.trim();
+                    generos[genero] = (generos[genero] || 0) + 1;
+                }
+            });
+
+            const generosArray = Object.entries(generos)
+                .sort((a, b) => b[1] - a[1]);
+
+            if (generosArray.length === 0) {
+                generosSection.style.display = 'none';
+                return;
+            }
+
+            generosSection.style.display = 'block';
+            generosSection.innerHTML = `
+                <h3>🎪 Juegos por Género</h3>
+                <div class="generos-lista">
+                    ${generosArray.map(([genero, cantidad]) => `
+                        <div class="genero-item">
+                            <span class="genero-nombre">${genero}</span>
+                            <div class="genero-barra">
+                                <div class="genero-progreso" style="width: ${(cantidad / juegos.length) * 100}%"></div>
+                            </div>
+                            <span class="genero-cantidad">${cantidad}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderizarLogros(totalJuegos, juegosCompletados, horasTotales, totalReseñas, puntuacionPromedio) {
+            const logrosSection = document.getElementById('logrosSection');
+            const logros = [];
+
+            if (totalJuegos >= 1) logros.push('🎮 Primera Adquisición');
+            if (totalJuegos >= 10) logros.push('📚 Coleccionista');
+            if (totalJuegos >= 25) logros.push('🏰 Biblioteca Épica');
+            if (juegosCompletados >= 1) logros.push('✓ Primer Completado');
+            if (juegosCompletados >= 5) logros.push('🏅 Completista');
+            if (juegosCompletados >= 10) logros.push('👑 Maestro Gamer');
+            if (horasTotales >= 50) logros.push('⏰ 50 Horas de Juego');
+            if (horasTotales >= 100) logros.push('⏳ Gamer Dedicado');
+            if (horasTotales >= 500) logros.push('🌟 Leyenda Gaming');
+            if (totalReseñas >= 5) logros.push('✍️ Crítico');
+            if (totalReseñas >= 10) logros.push('📝 Escritor Experto');
+            if (puntuacionPromedio >= 4.5) logros.push('⭐ Excelente Gusto');
+
+            logrosSection.innerHTML = `
+                <h3>🏆 Logros Desbloqueados (${logros.length})</h3>
+                <div class="logros-grid">
+                    ${logros.length > 0 
+                        ? logros.map(logro => `<div class="logro">${logro}</div>`).join('')
+                        : '<p style="padding: 1rem; color: #666;">Aún no has desbloqueado logros. ¡Sigue jugando!</p>'
+                    }
+                </div>
+            `;
+        }
+
+        // ============================================
+        // DATOS DE EJEMPLO (Opcional - Comentado)
+        // ============================================
+        
+        // Descomenta esto para agregar datos de prueba
+        /*
+        if (juegos.length === 0) {
+            juegos = [
+                {
+                    id: 1,
+                    titulo: "The Legend of Zelda: Breath of the Wild",
+                    plataforma: "Nintendo Switch",
+                    genero: "Aventura",
+                    portada: "https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg",
+                    puntuacion: 5,
+                    horasJugadas: 120,
+                    completado: true,
+                    fechaAgregado: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    titulo: "Elden Ring",
+                    plataforma: "PC",
+                    genero: "RPG",
+                    portada: "https://image.api.playstation.com/vulcan/ap/rnd/202110/2000/aGhopp3MHppi7kooGE2Dtt8C.png",
+                    puntuacion: 5,
+                    horasJugadas: 80,
+                    completado: false,
+                    fechaAgregado: new Date().toISOString()
+                }
+            ];
+            guardarJuegos();
+        }
+        */
+    </script>
+</body>
+</html>
